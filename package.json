@@ -1,0 +1,47 @@
+{
+  "name": "tomo-typeahead",
+  "version": "0.0.5",
+  "type": "module",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./index.cjs",
+      "import": "./index.js"
+    },
+    "./react": {
+      "require": "./react/index.cjs",
+      "import": "./react/index.js"
+    }
+  },
+  "repository": "https://github.com/danielbuechele/tomo-typeahead.git",
+  "author": "Daniel Büchele",
+  "license": "MIT",
+  "private": false,
+  "tsup": {
+    "entry": [
+      "src/index.ts",
+      "src/react/index.ts"
+    ],
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true,
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "dts": true
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsup && cp package.json dist/package.json && cp README.md dist/README.md"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.28",
+    "prettier": "^2.8.6",
+    "react": "^18.2.0",
+    "tsup": "^6.7.0",
+    "typescript": "^5.0.2"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  }
+}
