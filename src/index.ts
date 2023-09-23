@@ -1,5 +1,6 @@
 export type TomoTypeaheadConfig<T> = {
   fetcher: (query: string) => Promise<T[]>;
+  nullstateFetcher?: () => Promise<T[]>;
   keyExtractor: (data: T) => string;
   matchStringExtractor: (data: T) => string;
   debounce?: number;
@@ -33,6 +34,18 @@ export default class TomoTypeahead<T> {
       config.minimumQueryLength ?? this.minimumQueryLength;
     this.onLoadingChange = config.onLoadingChange;
     this.onDataChange = config.onDataChange;
+
+    if (config.nullstateFetcher != null) {
+      console.log('nullstateFetcher');
+      this.requests.set(
+        '',
+        config.nullstateFetcher?.().then((data) => {
+          const displaySet = new Map();
+          this.displaySets.set('', displaySet);
+          this.appendToDisplaySet(displaySet, data, this.currentQuery === '');
+        }),
+      );
+    }
   }
 
   private matchesQuery(item: T, query: string): boolean {
@@ -55,8 +68,14 @@ export default class TomoTypeahead<T> {
 
   setQuery(q: string) {
     const query = q.toLocaleLowerCase();
+    if (query === this.currentQuery) {
+      return;
+    }
 
-    if (!query) {
+    if (
+      !query &&
+      !this.requests.has('') // no nullstate
+    ) {
       this.displaySets.clear();
       this.requests.clear();
 
@@ -86,7 +105,7 @@ export default class TomoTypeahead<T> {
         const matchesFromPreviousSet = Array.from(
           longestCommonPrefixDisplaySet?.values() ?? [],
         ).filter((item) => this.matchesQuery(item, query));
-        this.appendToDisplaySet(displaySet, matchesFromPreviousSet);
+        this.appendToDisplaySet(displaySet, matchesFromPreviousSet, true);
       }
     }
 
@@ -165,7 +184,7 @@ export default class TomoTypeahead<T> {
   appendToDisplaySet(
     displaySet: Map<string, T>,
     data: T[],
-    triggerUpdate?: boolean,
+    triggerUpdate: boolean,
   ) {
     for (const item of data) {
       const key = this.keyExtractor(item);
@@ -174,7 +193,7 @@ export default class TomoTypeahead<T> {
       }
     }
 
-    if (triggerUpdate !== false) {
+    if (triggerUpdate) {
       this.onDataChange?.call(this, Array.from(displaySet.values()));
     }
   }

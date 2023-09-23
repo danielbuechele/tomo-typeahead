@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react';
+import {useMemo, useState, useCallback} from 'react';
 import TomoTypeahead, {TomoTypeaheadConfig} from '../index';
 
 export function useTypeahead<T>(config: TomoTypeaheadConfig<T>): {
@@ -25,12 +25,17 @@ export function useTypeahead<T>(config: TomoTypeaheadConfig<T>): {
           }
         },
       }),
-    [config],
+    [], // ignoring config here because we don't want to recreate the typeahead
+  );
+
+  const setQuery = useCallback(
+    (q: string) => typeahead.setQuery(q),
+    [typeahead],
   );
 
   return {
     loading,
     data,
-    setQuery: (q) => typeahead.setQuery(q),
+    setQuery,
   };
 }
